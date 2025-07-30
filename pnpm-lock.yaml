@@ -8,6 +8,9 @@ dependencies:
   '@supabase/supabase-js':
     specifier: ^2.39.0
     version: 2.53.0
+  '@types/node':
+    specifier: ^20.10.5
+    version: 20.19.9
   compression:
     specifier: ^1.7.4
     version: 1.8.1
@@ -38,6 +41,9 @@ dependencies:
   swagger-ui-express:
     specifier: ^5.0.0
     version: 5.0.1(express@4.21.2)
+  typescript:
+    specifier: ^5.3.3
+    version: 5.8.3
   zod:
     specifier: ^3.22.4
     version: 3.25.76
@@ -58,9 +64,6 @@ devDependencies:
   '@types/morgan':
     specifier: ^1.9.9
     version: 1.9.10
-  '@types/node':
-    specifier: ^20.10.5
-    version: 20.19.9
   '@types/supertest':
     specifier: ^6.0.3
     version: 6.0.3
@@ -91,9 +94,6 @@ devDependencies:
   ts-node:
     specifier: ^10.9.2
     version: 10.9.2(@types/node@20.19.9)(typescript@5.8.3)
-  typescript:
-    specifier: ^5.3.3
-    version: 5.8.3
 
 packages:
 
@@ -4362,7 +4362,6 @@ packages:
     resolution: {integrity: sha512-p1diW6TqL9L07nNxvRMM7hMMw4c5XOo/1ibL4aAIGmSAt9slTE1Xgw5KWuof2uTOvCg9BY7ZRi+GaF+7sfgPeQ==}
     engines: {node: '>=14.17'}
     hasBin: true
-    dev: true
 
   /undefsafe@2.0.5:
     resolution: {integrity: sha512-WxONCrssBM8TSPRqN5EmsjVrsv4A8X12J4ArBiiayv3DyyG3ZlIg6yysuuSYdZsVz3TKcTg2fd//Ujd4CHV1iA==}
