@@ -36,8 +36,8 @@ export async function calculateZoneSafety(zoneId: string): Promise<boolean> {
         (now.getTime() - carnivore.lastFedTime.getTime()) / (1000 * 60 * 60);
 
       // Safe if still within digestion period
-      // Use default of 48 hours if digestionPeriodHours is null
-      const digestionPeriod = carnivore.digestionPeriodHours ?? 48;
+      // Use default of 12 hours as a safety if digestionPeriodHours is null
+      const digestionPeriod = carnivore.digestionPeriodHours ?? 12;
       return hoursSinceFeeding < digestionPeriod;
     });
   } catch (error) {

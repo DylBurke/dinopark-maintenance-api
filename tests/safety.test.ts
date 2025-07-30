@@ -1,4 +1,4 @@
-import { isMaintenanceNeeded, generateAllZoneIds } from '../src/lib/safety';
+import { isMaintenanceNeeded, generateAllZoneIds } from '../src/lib/safety-and-maintenance';
 
 describe('Zone Safety Calculations', () => {
   test('generateAllZoneIds should create 416 zones', () => {

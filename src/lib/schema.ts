@@ -18,7 +18,7 @@ export const dinosaurs = pgTable('dinosaurs', {
   isCarnivore: boolean('is_carnivore').default(false),
   currentLocation: varchar('current_location', { length: 3 }), // Zone ID
   lastFedTime: timestamp('last_fed_time'),
-  digestionPeriodHours: integer('digestion_period_hours').default(48), // Making the default digestion period 48 hours
+  digestionPeriodHours: integer('digestion_period_hours').default(12), // Making the default digestion period 12 hours for extra safety
   parkId: integer('park_id').default(1),
   createdAt: timestamp('created_at').defaultNow(),
   updatedAt: timestamp('updated_at').defaultNow(),
