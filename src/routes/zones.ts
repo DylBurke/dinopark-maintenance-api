@@ -107,8 +107,8 @@ router.get('/:id', async (req, res: Response<ZoneDetailResponse | ApiError>) => 
       .from(dinosaurs)
       .where(eq(dinosaurs.currentLocation, zoneId));
     
-    const carnivores = dinosaursInZone.filter(dino => dino.isCarnivore);
-    const herbivores = dinosaursInZone.filter(dino => !dino.isCarnivore);
+    const carnivores = dinosaursInZone.filter(dino => !dino.herbivore);
+    const herbivores = dinosaursInZone.filter(dino => dino.herbivore);
     
     const response: ZoneDetailResponse = {
       id: zoneId,
@@ -141,14 +141,14 @@ router.get('/:id', async (req, res: Response<ZoneDetailResponse | ApiError>) => 
       lastUpdated: new Date().toISOString()
     };
 
-    res.json(response);
+    return res.json(response);
   } catch (error) {
     console.error('Error fetching zone details:', error);
     const errorResponse: ApiError = {
       error: 'Failed to fetch zone details',
       timestamp: new Date().toISOString()
     };
-    res.status(500).json(errorResponse);
+    return res.status(500).json(errorResponse);
   }
 });
 

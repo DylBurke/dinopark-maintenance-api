@@ -9,12 +9,12 @@ if (!connectionString) {
 }
 
 // Create postgres client
-export const sql = postgres(connectionString);
+const client = postgres(connectionString);
 
 // Create drizzle database instance
-export const db = drizzle(sql, { schema });
+export const db = drizzle(client, { schema });
 
 // Helper function to close connection (for testing)
 export const closeConnection = async () => {
-  await sql.end();
+  await client.end();
 };

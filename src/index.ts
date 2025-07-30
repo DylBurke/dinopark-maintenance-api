@@ -1,19 +1,22 @@
+// Load environment variables FIRST before any other imports
+import dotenv from 'dotenv';
+dotenv.config();
+
 import express, { Express, Response } from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
 import morgan from 'morgan';
 import compression from 'compression';
-import dotenv from 'dotenv';
 
 // Import routes
 import zonesRouter from './routes/zones';
 import systemRouter from './routes/system';
 
+// Import services
+import { NudlsService } from './services/nudls';
+
 // Import types
 import type { ApiRootResponse } from './types/api';
-
-// Load environment variables
-dotenv.config();
 
 const app: Express = express();
 const PORT = process.env.PORT || 3000;
@@ -93,11 +96,31 @@ app.use('*', (req, res) => {
   });
 });
 
+// Initialize and start NUDLS service
+const nudlsService = NudlsService.getInstance();
+
 // Start server
 app.listen(PORT, () => {
   console.log(`🦕 Dinopark API running on port ${PORT}`);
   console.log(`📚 Health check: http://localhost:${PORT}/health`);
   console.log(`🏠 Environment: ${process.env.NODE_ENV || 'development'}`);
+  
+  // Start NUDLS polling service
+  console.log(`🔄 Starting NUDLS polling service...`);
+  nudlsService.start();
+});
+
+// Graceful shutdown
+process.on('SIGTERM', () => {
+  console.log('🛑 SIGTERM received, shutting down gracefully...');
+  nudlsService.stop();
+  process.exit(0);
+});
+
+process.on('SIGINT', () => {
+  console.log('🛑 SIGINT received, shutting down gracefully...');
+  nudlsService.stop();
+  process.exit(0);
 });
 
 export default app;

@@ -1,0 +1,1 @@
+ALTER TABLE "dinosaurs" ALTER COLUMN "nudls_id" SET NOT NULL;

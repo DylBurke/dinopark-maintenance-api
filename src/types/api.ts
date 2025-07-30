@@ -86,6 +86,18 @@ export interface SystemStatusResponse {
     lastUpdate: string | null;
     minutesSinceUpdate: number | null;
     statusDescription: string;
+    serviceStats: {
+      isRunning: boolean;
+      totalEvents: number;
+      consecutiveFailures: number;
+      eventsProcessed: {
+        dino_added: number;
+        dino_removed: number;
+        dino_location_updated: number;
+        dino_fed: number;
+        maintenance_performed: number;
+      };
+    };
   };
   environment: {
     nodeEnv: string;

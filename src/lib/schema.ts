@@ -11,11 +11,11 @@ export const zones = pgTable('zones', {
 // Dinosaurs in the park
 export const dinosaurs = pgTable('dinosaurs', {
   id: serial('id').primaryKey(),
-  nudlsId: integer('nudls_id').unique(), // I am using this as the ID we get from the NUDLS system
+  nudlsId: integer('nudls_id').notNull().unique(), // I am using this as the ID we get from the NUDLS system
   name: varchar('name', { length: 100 }),
   species: varchar('species', { length: 100 }),
   gender: varchar('gender', { length: 10 }),
-  isCarnivore: boolean('is_carnivore').default(false),
+  herbivore: boolean('herbivore').default(true),
   currentLocation: varchar('current_location', { length: 3 }), // Zone ID
   lastFedTime: timestamp('last_fed_time'),
   digestionPeriodHours: integer('digestion_period_hours').default(12), // Making the default digestion period 12 hours for extra safety

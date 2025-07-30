@@ -15,7 +15,7 @@ export async function calculateZoneSafety(zoneId: string): Promise<boolean> {
       .where(
         and(
           eq(dinosaurs.currentLocation, zoneId),
-          eq(dinosaurs.isCarnivore, true)
+          eq(dinosaurs.herbivore, false)
         )
       );
 

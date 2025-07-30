@@ -3,6 +3,7 @@ import type { Router as ExpressRouter, Response } from 'express';
 import { db } from '../lib/database';
 import { dinosaurs, zones, maintenanceRecords } from '../lib/schema';
 import { sql } from 'drizzle-orm';
+import { NudlsService } from '../services/nudls';
 import type { 
   SystemStatusResponse, 
   SystemHealthResponse, 
@@ -24,34 +25,33 @@ router.get('/status', async (_req, res: Response<SystemStatusResponse | ApiError
     const [carnivoreCount] = await db
       .select({ count: sql<number>`count(*)` })
       .from(dinosaurs)
-      .where(sql`is_carnivore = true`);
+      .where(sql`herbivore = false`);
     
     const [herbivoreCount] = await db
       .select({ count: sql<number>`count(*)` })
       .from(dinosaurs)
-      .where(sql`is_carnivore = false`);
+      .where(sql`herbivore = true`);
     
-    // Get most recent dinosaur update (approximates last NUDLS sync)
-    const [latestDino] = await db
-      .select({ lastUpdated: dinosaurs.updatedAt })
-      .from(dinosaurs)
-      .orderBy(sql`updated_at DESC`)
-      .limit(1);
+    // Get NUDLS service status
+    const nudlsService = NudlsService.getInstance();
+    const nudlsServiceStatus = nudlsService.getStatus();
     
     // Calculate system health
     const now = new Date();
-    const lastUpdate = latestDino?.lastUpdated;
+    const lastUpdate = nudlsServiceStatus.lastSuccessfulPoll;
     const minutesSinceUpdate = lastUpdate 
       ? Math.floor((now.getTime() - lastUpdate.getTime()) / (1000 * 60))
       : null;
     
-    // Determine NUDLS status based on last update
+    // Determine NUDLS status based on service status and last update
     let nudlsStatus: NudlsStatus = 'unknown';
-    if (minutesSinceUpdate === null) {
+    if (!nudlsServiceStatus.isRunning) {
+      nudlsStatus = 'down';
+    } else if (minutesSinceUpdate === null) {
       nudlsStatus = 'no_data';
-    } else if (minutesSinceUpdate < 5) {
+    } else if (minutesSinceUpdate < 2) {
       nudlsStatus = 'healthy';
-    } else if (minutesSinceUpdate < 15) {
+    } else if (minutesSinceUpdate < 10) {
       nudlsStatus = 'degraded';
     } else {
       nudlsStatus = 'down';
@@ -79,12 +79,18 @@ router.get('/status', async (_req, res: Response<SystemStatusResponse | ApiError
         lastUpdate: lastUpdate?.toISOString() || null,
         minutesSinceUpdate,
         statusDescription: {
-          healthy: 'Data updated within 5 minutes',
-          degraded: 'Data updated 5-15 minutes ago',
-          down: 'No data updates for >15 minutes',
-          no_data: 'No dinosaur data in system',
+          healthy: 'Service running, data updated within 2 minutes',
+          degraded: 'Service running, data updated 2-10 minutes ago',
+          down: 'Service not running or no data for >10 minutes',
+          no_data: 'Service running but no data received yet',
           unknown: 'Unable to determine status'
-        }[nudlsStatus]
+        }[nudlsStatus],
+        serviceStats: {
+          isRunning: nudlsServiceStatus.isRunning,
+          totalEvents: nudlsServiceStatus.totalEvents,
+          consecutiveFailures: nudlsServiceStatus.consecutiveFailures,
+          eventsProcessed: nudlsServiceStatus.eventsProcessed
+        }
       },
       environment: {
         nodeEnv: process.env.NODE_ENV || 'development',
