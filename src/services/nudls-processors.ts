@@ -28,8 +28,8 @@ export class NudlsEventProcessors {
         parkId: event.park_id,
         currentLocation: null, // Will be set by location_updated events when they come in
         lastFedTime: null, // Will be set by fed events when they come in
-        createdAt: new Date(event.time),
-        updatedAt: new Date(event.time)
+        createdAt: new Date(event.time), // Time the event was recorded by NUDLS system, correlating to our system
+        updatedAt: new Date() // Current timestamp when record is created
       }).onConflictDoUpdate({
         target: dinosaurs.nudlsId,
         set: {
@@ -40,7 +40,7 @@ export class NudlsEventProcessors {
           herbivore: event.herbivore,
           digestionPeriodHours: event.digestion_period_in_hours,
           parkId: event.park_id,
-          updatedAt: new Date(event.time)
+          updatedAt: new Date() // Current timestamp when record is updated
           // Don't overwrite: currentLocation, lastFedTime (preserve existing operational data)
         }
       });
@@ -112,13 +112,13 @@ export class NudlsEventProcessors {
         currentLocation: event.location,
         parkId: event.park_id,
         createdAt: new Date(event.time),
-        updatedAt: new Date(event.time)
+        updatedAt: new Date() // Current timestamp when record is created
         // Other fields will use schema defaults
       }).onConflictDoUpdate({
         target: dinosaurs.nudlsId,
         set: {
           currentLocation: event.location,
-          updatedAt: new Date(event.time)
+          updatedAt: new Date() // Current timestamp when record is updated
           // Don't overwrite: name, species, herbivore, lastFedTime, etc.
         }
       }).returning({ name: dinosaurs.name, nudlsId: dinosaurs.nudlsId });
@@ -148,14 +148,14 @@ export class NudlsEventProcessors {
         nudlsId: event.dinosaur_id,
         lastFedTime: new Date(event.time),
         parkId: event.park_id,
-        createdAt: new Date(event.time),
-        updatedAt: new Date(event.time)
+        createdAt: new Date(event.time), // Time the event was recorded by NUDLS system, correlating to our system
+        updatedAt: new Date() // Current timestamp when record is created
         // Other fields will use schema defaults
       }).onConflictDoUpdate({
         target: dinosaurs.nudlsId,
         set: {
           lastFedTime: new Date(event.time),
-          updatedAt: new Date(event.time)
+          updatedAt: new Date() // Current timestamp when record is updated
           // Don't overwrite: name, species, herbivore, currentLocation, etc.
         }
       }).returning({ name: dinosaurs.name, herbivore: dinosaurs.herbivore, nudlsId: dinosaurs.nudlsId });
@@ -189,13 +189,13 @@ export class NudlsEventProcessors {
       await db.insert(zones).values({
         id: event.location,
         lastMaintenanceDate: new Date(event.time),
-        createdAt: new Date(event.time),
-        updatedAt: new Date(event.time)
+        createdAt: new Date(), // Current timestamp when zone record is created
+        updatedAt: new Date() // Current timestamp when record is created
       }).onConflictDoUpdate({
         target: zones.id,
         set: {
           lastMaintenanceDate: new Date(event.time),
-          updatedAt: new Date(event.time)
+          updatedAt: new Date() // Current timestamp when record is updated
         }
       });
 
