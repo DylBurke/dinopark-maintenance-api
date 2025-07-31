@@ -96,31 +96,34 @@ app.use('*', (req, res) => {
   });
 });
 
-// Initialize and start NUDLS service
-const nudlsService = NudlsService.getInstance();
+// Only start server if this file is run directly (not imported for testing)
+if (require.main === module) {
+  // Initialize and start NUDLS service
+  const nudlsService = NudlsService.getInstance();
 
-// Start server
-app.listen(PORT, () => {
-  console.log(`🦕 Dinopark API running on port ${PORT}`);
-  console.log(`📚 Health check: http://localhost:${PORT}/health`);
-  console.log(`🏠 Environment: ${process.env.NODE_ENV || 'development'}`);
-  
-  // Start NUDLS polling service
-  console.log(`🔄 Starting NUDLS polling service...`);
-  nudlsService.start();
-});
+  // Start server
+  app.listen(PORT, () => {
+    console.log(`🦕 Dinopark API running on port ${PORT}`);
+    console.log(`📚 Health check: http://localhost:${PORT}/health`);
+    console.log(`🏠 Environment: ${process.env.NODE_ENV || 'development'}`);
+    
+    // Start NUDLS polling service
+    console.log(`🔄 Starting NUDLS polling service...`);
+    nudlsService.start();
+  });
 
-// Graceful shutdown
-process.on('SIGTERM', () => {
-  console.log('🛑 SIGTERM received, shutting down gracefully...');
-  nudlsService.stop();
-  process.exit(0);
-});
+  // Graceful shutdown
+  process.on('SIGTERM', () => {
+    console.log('🛑 SIGTERM received, shutting down gracefully...');
+    nudlsService.stop();
+    process.exit(0);
+  });
 
-process.on('SIGINT', () => {
-  console.log('🛑 SIGINT received, shutting down gracefully...');
-  nudlsService.stop();
-  process.exit(0);
-});
+  process.on('SIGINT', () => {
+    console.log('🛑 SIGINT received, shutting down gracefully...');
+    nudlsService.stop();
+    process.exit(0);
+  });
+}
 
 export default app;

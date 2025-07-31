@@ -29,7 +29,7 @@ export interface DinoLocationUpdatedEvent extends NudlsEventBase {
 
 export interface DinoFedEvent extends NudlsEventBase {
   kind: 'dino_fed';
-  id: number; // NUDLS dinosaur ID
+  dinosaur_id: number; // NUDLS dinosaur ID
 }
 
 export interface MaintenancePerformedEvent extends NudlsEventBase {

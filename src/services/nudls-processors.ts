@@ -139,13 +139,13 @@ export class NudlsEventProcessors {
   static async processDinoFed(event: DinoFedEvent): Promise<void> {
     try {
       // Validate required fields
-      if (!event.id || event.id === undefined || event.id === null) {
-        console.log(`⏭️ Skipped feeding: Invalid dinosaur id in event (${event.id})`);
+      if (!event.dinosaur_id || event.dinosaur_id === undefined || event.dinosaur_id === null) {
+        console.log(`⏭️ Skipped feeding: Invalid dinosaur_id in event (${event.dinosaur_id})`);
         return;
       }
 
       const result = await db.insert(dinosaurs).values({
-        nudlsId: event.id,
+        nudlsId: event.dinosaur_id,
         lastFedTime: new Date(event.time),
         parkId: event.park_id,
         createdAt: new Date(event.time),
@@ -167,7 +167,7 @@ export class NudlsEventProcessors {
     } catch (error) {
       console.error(`❌ Error processing dino_fed event:`, error);
       // Don't throw - log and continue to avoid crashing the whole system
-      console.log(`⏭️ Skipped problematic feeding event for dinosaur ${event.id}`);
+      console.log(`⏭️ Skipped problematic feeding event for dinosaur ${event.dinosaur_id}`);
     }
   }
 
