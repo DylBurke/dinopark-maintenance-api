@@ -1,0 +1,1 @@
+ALTER TABLE "maintenance_records" ADD CONSTRAINT "maintenance_records_zone_id_performed_at_unique" UNIQUE("zone_id","performed_at");

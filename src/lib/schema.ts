@@ -1,4 +1,4 @@
-import { pgTable, varchar, boolean, timestamp, integer, serial } from 'drizzle-orm/pg-core';
+import { pgTable, varchar, boolean, timestamp, integer, serial, unique } from 'drizzle-orm/pg-core';
 
 // Park zones (A0-Z15, 26x16 grid = 416 zones total)
 export const zones = pgTable('zones', {
@@ -32,7 +32,10 @@ export const maintenanceRecords = pgTable('maintenance_records', {
   performedBy: varchar('performed_by', { length: 100 }),
   notes: varchar('notes', { length: 500 }),
   createdAt: timestamp('created_at').defaultNow(),
-});
+}, (table) => ({
+  // Unique constraint: one maintenance record per zone per timestamp
+  uniqueZoneTime: unique().on(table.zoneId, table.performedAt),
+}));
 
 // Type exports for TypeScript to make it easier for inferring types during usage
 export type Zone = typeof zones.$inferSelect;

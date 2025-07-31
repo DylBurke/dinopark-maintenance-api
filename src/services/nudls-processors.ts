@@ -176,14 +176,14 @@ export class NudlsEventProcessors {
    */
   static async processMaintenancePerformed(event: MaintenancePerformedEvent): Promise<void> {
     try {
-      // Record the maintenance event
+      // Record the maintenance event with upsert to prevent duplicates
       await db.insert(maintenanceRecords).values({
         zoneId: event.location,
         performedAt: new Date(event.time),
         performedBy: 'NUDLS System',
         notes: `Maintenance performed via NUDLS event at ${event.time}`,
         createdAt: new Date(event.time)
-      });
+      }).onConflictDoNothing(); // Skip if already exists (idempotent)
 
       // Update or insert the zone with new maintenance date
       await db.insert(zones).values({
