@@ -33,15 +33,16 @@ export class NudlsEventProcessors {
       }).onConflictDoUpdate({
         target: dinosaurs.nudlsId,
         set: {
-          // Only update identity/metadata fields, to preserve operational data and not overwrite important last fed time and current location
+          // Update identity fields (may be null from out-of-order events such as dino_fed coming first)
           name: event.name,
           species: event.species,
           gender: event.gender,
           herbivore: event.herbivore,
           digestionPeriodHours: event.digestion_period_in_hours,
           parkId: event.park_id,
-          updatedAt: new Date() // Current timestamp when record is updated
-          // Don't overwrite: currentLocation, lastFedTime (preserve existing operational data)
+          // Only update timestamp if this is actually new information
+          updatedAt: new Date()
+          // Don't overwrite: currentLocation, lastFedTime (preserve operational data)
         }
       });
 
@@ -176,25 +177,29 @@ export class NudlsEventProcessors {
    */
   static async processMaintenancePerformed(event: MaintenancePerformedEvent): Promise<void> {
     try {
+      // Round timestamp to nearest minute to prevent micro-duplicates
+      const roundedTime = new Date(event.time);
+      roundedTime.setSeconds(0, 0); // Set seconds and milliseconds to 0
+      
       // Record the maintenance event with upsert to prevent duplicates
       await db.insert(maintenanceRecords).values({
         zoneId: event.location,
-        performedAt: new Date(event.time),
+        performedAt: roundedTime,
         performedBy: 'NUDLS System',
         notes: `Maintenance performed via NUDLS event at ${event.time}`,
-        createdAt: new Date(event.time)
+        createdAt: roundedTime
       }).onConflictDoNothing(); // Skip if already exists (idempotent)
 
-      // Update or insert the zone with new maintenance date
+      // Update or insert the zone with new maintenance date (use rounded time for consistency)
       await db.insert(zones).values({
         id: event.location,
-        lastMaintenanceDate: new Date(event.time),
+        lastMaintenanceDate: roundedTime,
         createdAt: new Date(), // Current timestamp when zone record is created
         updatedAt: new Date() // Current timestamp when record is created
       }).onConflictDoUpdate({
         target: zones.id,
         set: {
-          lastMaintenanceDate: new Date(event.time),
+          lastMaintenanceDate: roundedTime,
           updatedAt: new Date() // Current timestamp when record is updated
         }
       });
