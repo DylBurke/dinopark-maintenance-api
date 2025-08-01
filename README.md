@@ -29,7 +29,7 @@ curl https://dylan-burke-dinopark-maintenance-api.onrender.com/api/zones/A0
 
 - [Business Logic](#-business-logic)
 - [Quick Start](#-quick-start)
-- [How I Approached the Problem](#-how-i-approached-the-problem)
+- [How I Approached some of the Problems](#-how-i-approached-some-of-the-problems)
 - [API Endpoints](#-api-endpoints)
 - [Project Architecture](#-project-architecture)
 - [Testing Strategy](#-testing-strategy)
@@ -300,7 +300,7 @@ interface ZoneDetails {
 **Live Examples:**
 ```bash
 # Zone with dinosaurs
-curl https://dylan-burke-dinopark-maintenance-api.onrender.com/api/zones/A0
+curl https://dylan-burke-dinopark-maintenance-api.onrender.com/api/zones/N7
 
 # Empty zone
 curl https://dylan-burke-dinopark-maintenance-api.onrender.com/api/zones/Z15
@@ -362,6 +362,7 @@ curl https://dylan-burke-dinopark-maintenance-api.onrender.com/api/system/status
 // ✅ These are the key properties your frontend needs:
 zone.safe           // Boolean - show green/red indicator
 zone.id            // String - zone label ("A0", "B5")
+zone.needsMaintenance // Boolean - show spanner indicator
 zone.status        // String - for CSS classes or icons
 ```
 
@@ -765,7 +766,7 @@ firebase.firestore().collection('zones')
 
 ---
 
-### Future Enhancements
+### Future Enhancements (Just for fun!)
 - **Machine Learning:** Predictive maintenance scheduling
 - **Advanced Analytics:** Historical trend analysis for operational optimization
 - **Mobile Integration:** Native mobile applications for field workers
