@@ -13,108 +13,12 @@ import type {
 } from '../types/nudls';
 
 export class NudlsEventProcessors {
-  /**
-   * Helper to check if location has actually changed
-   */
-  private static async hasLocationChanged(nudlsId: number, newLocation: string): Promise<boolean> {
-    const existing = await db
-      .select({ currentLocation: dinosaurs.currentLocation })
-      .from(dinosaurs)
-      .where(eq(dinosaurs.nudlsId, nudlsId))
-      .limit(1);
-    
-    return existing.length === 0 || existing[0].currentLocation !== newLocation;
-  }
-
-  /**
-   * Helper to check if feeding time has actually changed
-   */
-  private static async hasFeedingChanged(nudlsId: number, newFeedTime: Date): Promise<boolean> {
-    const existing = await db
-      .select({ lastFedTime: dinosaurs.lastFedTime })
-      .from(dinosaurs)
-      .where(eq(dinosaurs.nudlsId, nudlsId))
-      .limit(1);
-    
-    if (existing.length === 0) return true; // New record
-    
-    const currentFeedTime = existing[0].lastFedTime;
-    return !currentFeedTime || currentFeedTime.getTime() !== newFeedTime.getTime();
-  }
-
-  /**
-   * Helper to check if maintenance time has actually changed
-   */
-  private static async hasMaintenanceChanged(zoneId: string, newPerformedAt: Date): Promise<boolean> {
-    const existing = await db
-      .select({ performedAt: maintenanceRecords.performedAt })
-      .from(maintenanceRecords)
-      .where(eq(maintenanceRecords.zoneId, zoneId))
-      .limit(1);
-    
-    if (existing.length === 0) return true; // New record
-    
-    const currentPerformedAt = existing[0].performedAt;
-    return !currentPerformedAt || currentPerformedAt.getTime() !== newPerformedAt.getTime();
-  }
-
-  /**
-   * Helper to check if dinosaur identity data has actually changed
-   */
-  private static async hasDinosaurIdentityChanged(nudlsId: number, updates: {
-    name: string | null;
-    species: string | null;
-    gender: string | null;
-    herbivore: boolean;
-    digestionPeriodHours: number;
-    parkId: number;
-  }): Promise<boolean> {
-    const existing = await db
-      .select({
-        name: dinosaurs.name,
-        species: dinosaurs.species,
-        gender: dinosaurs.gender,
-        herbivore: dinosaurs.herbivore,
-        digestionPeriodHours: dinosaurs.digestionPeriodHours,
-        parkId: dinosaurs.parkId
-      })
-      .from(dinosaurs)
-      .where(eq(dinosaurs.nudlsId, nudlsId))
-      .limit(1);
-    
-    if (existing.length === 0) return true; // New record
-    
-    const current = existing[0];
-    return (
-      current.name !== updates.name ||
-      current.species !== updates.species ||
-      current.gender !== updates.gender ||
-      current.herbivore !== updates.herbivore ||
-      current.digestionPeriodHours !== updates.digestionPeriodHours ||
-      current.parkId !== updates.parkId
-    );
-  }
 
   /**
    * Process dino_added event - Add new dinosaur or update identity fields only
    */
   static async processDinoAdded(event: DinoAddedEvent): Promise<void> {
     try {
-      // Check if dinosaur identity data actually changed
-      const identityChanged = await this.hasDinosaurIdentityChanged(event.id, {
-        name: event.name,
-        species: event.species,
-        gender: event.gender,
-        herbivore: event.herbivore,
-        digestionPeriodHours: event.digestion_period_in_hours,
-        parkId: event.park_id
-      });
-
-      if (!identityChanged) {
-        console.log(`⏭️ Skipped dino_added: No identity changes for ${event.name} (NUDLS ID: ${event.id})`);
-        return;
-      }
-
       await db.insert(dinosaurs).values({
         nudlsId: event.id,
         name: event.name,
@@ -204,13 +108,6 @@ export class NudlsEventProcessors {
         return;
       }
 
-      // Check if location actually changed
-      const locationChanged = await this.hasLocationChanged(event.dinosaur_id, event.location);
-      if (!locationChanged) {
-        console.log(`⏭️ Skipped location update: Dinosaur ${event.dinosaur_id} already at Zone ${event.location}`);
-        return;
-      }
-
       const result = await db.insert(dinosaurs).values({
         nudlsId: event.dinosaur_id,
         currentLocation: event.location,
@@ -248,14 +145,8 @@ export class NudlsEventProcessors {
         return;
       }
 
-      // Check if feeding time actually changed
       const newFeedTime = new Date(event.time);
-      const feedingChanged = await this.hasFeedingChanged(event.dinosaur_id, newFeedTime);
-      if (!feedingChanged) {
-        console.log(`⏭️ Skipped feeding: Dinosaur ${event.dinosaur_id} already has same feeding time`);
-        return;
-      }
-
+      
       const result = await db.insert(dinosaurs).values({
         nudlsId: event.dinosaur_id,
         lastFedTime: newFeedTime,
@@ -290,13 +181,6 @@ export class NudlsEventProcessors {
     try {
       // Use original timestamp without rounding
       const performedTime = new Date(event.time);
-      
-      // Check if maintenance time actually changed
-      const maintenanceChanged = await this.hasMaintenanceChanged(event.location, performedTime);
-      if (!maintenanceChanged) {
-        console.log(`⏭️ Skipped maintenance: Zone ${event.location} already has same maintenance time`);
-        return;
-      }
       
       // Record the maintenance event with upsert to keep latest timestamp
       await db.insert(maintenanceRecords).values({
@@ -375,7 +259,9 @@ export class NudlsEventProcessors {
     processed: number;
     failed: number;
     errors: Error[];
+    totalTime: number;
   }> {
+    const startTime = Date.now();
     let processed = 0;
     let failed = 0;
     const errors: Error[] = [];
@@ -392,7 +278,8 @@ export class NudlsEventProcessors {
       }
     }
 
-    console.log(`✅ Processed: ${processed}, ❌ Failed: ${failed}`);
-    return { processed, failed, errors };
+    const totalTime = Date.now() - startTime;
+    console.log(`✅ Processed: ${processed}, ❌ Failed: ${failed}, ⏱️ Time: ${totalTime}ms`);
+    return { processed, failed, errors, totalTime };
   }
 }
