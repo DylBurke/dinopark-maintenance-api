@@ -87,15 +87,11 @@ export interface SystemStatusResponse {
     minutesSinceUpdate: number | null;
     statusDescription: string;
     serviceStats: {
-      isRunning: boolean;
-      totalEvents: number;
       consecutiveFailures: number;
-      eventsProcessed: {
-        dino_added: number;
-        dino_removed: number;
-        dino_location_updated: number;
-        dino_fed: number;
-        maintenance_performed: number;
+      databaseRecords: {
+        dinosaurs: number;
+        maintenanceRecords: number;
+        zones: number;
       };
     };
   };

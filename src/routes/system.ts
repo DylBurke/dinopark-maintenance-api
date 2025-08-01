@@ -3,7 +3,6 @@ import type { Router as ExpressRouter, Response } from 'express';
 import { db } from '../lib/database';
 import { dinosaurs, zones, maintenanceRecords } from '../lib/schema';
 import { sql } from 'drizzle-orm';
-import { NudlsService } from '../services/nudls';
 import type { 
   SystemStatusResponse, 
   SystemHealthResponse, 
@@ -32,29 +31,15 @@ router.get('/status', async (_req, res: Response<SystemStatusResponse | ApiError
       .from(dinosaurs)
       .where(sql`herbivore = true`);
     
-    // Get NUDLS service status
-    const nudlsService = NudlsService.getInstance();
-    const nudlsServiceStatus = nudlsService.getStatus();
-    
-    // Calculate system health
+    // Determine NUDLS status based on database content (once off seeding approach until we get webhook)
     const now = new Date();
-    const lastUpdate = nudlsServiceStatus.lastSuccessfulPoll;
-    const minutesSinceUpdate = lastUpdate 
-      ? Math.floor((now.getTime() - lastUpdate.getTime()) / (1000 * 60))
-      : null;
-    
-    // Determine NUDLS status based on service status and last update
     let nudlsStatus: NudlsStatus = 'unknown';
-    if (!nudlsServiceStatus.isRunning) {
-      nudlsStatus = 'down';
-    } else if (minutesSinceUpdate === null) {
-      nudlsStatus = 'no_data';
-    } else if (minutesSinceUpdate < 2) {
-      nudlsStatus = 'healthy';
-    } else if (minutesSinceUpdate < 10) {
-      nudlsStatus = 'degraded';
+    
+    // Check if we have dinosaur data (indicates successful seeding)
+    if (dinoCount.count > 0) {
+      nudlsStatus = 'healthy'; // Database has been seeded with NUDLS data
     } else {
-      nudlsStatus = 'down';
+      nudlsStatus = 'no_data'; // Database not seeded yet
     }
     
     const response: SystemStatusResponse = {
@@ -76,20 +61,22 @@ router.get('/status', async (_req, res: Response<SystemStatusResponse | ApiError
       },
       nudls: {
         status: nudlsStatus,
-        lastUpdate: lastUpdate?.toISOString() || null,
-        minutesSinceUpdate,
+        lastUpdate: null, // This will change from null when we get a webhook posting events
+        minutesSinceUpdate: null,
         statusDescription: {
-          healthy: 'Service running, data updated within 2 minutes',
-          degraded: 'Service running, data updated 2-10 minutes ago',
-          down: 'Service not running or no data for >10 minutes',
-          no_data: 'Service running but no data received yet',
+          healthy: 'Database seeded with NUDLS historical events',
+          degraded: 'Partial data available',
+          down: 'Failed to seed NUDLS data',
+          no_data: 'Database not seeded - run: npm run seed',
           unknown: 'Unable to determine status'
         }[nudlsStatus],
         serviceStats: {
-          isRunning: nudlsServiceStatus.isRunning,
-          totalEvents: nudlsServiceStatus.totalEvents,
-          consecutiveFailures: nudlsServiceStatus.consecutiveFailures,
-          eventsProcessed: nudlsServiceStatus.eventsProcessed
+          consecutiveFailures: 0,
+          databaseRecords: {
+            dinosaurs: dinoCount.count,
+            maintenanceRecords: maintenanceCount.count,
+            zones: zoneCount.count
+          }
         }
       },
       environment: {

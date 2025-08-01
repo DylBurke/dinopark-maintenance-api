@@ -49,7 +49,6 @@ export type NudlsFeedResponse = NudlsEvent[];
 
 // Service status types
 export interface NudlsServiceStatus {
-  isRunning: boolean;
   lastSuccessfulPoll: Date | null;
   consecutiveFailures: number;
   totalEvents: number;

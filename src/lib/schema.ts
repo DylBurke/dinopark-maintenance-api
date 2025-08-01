@@ -32,9 +32,10 @@ export const maintenanceRecords = pgTable('maintenance_records', {
   performedBy: varchar('performed_by', { length: 100 }),
   notes: varchar('notes', { length: 500 }),
   createdAt: timestamp('created_at').defaultNow(),
+  updatedAt: timestamp('updated_at').defaultNow(),
 }, (table) => ({
-  // Unique constraint: one maintenance record per zone per timestamp
-  uniqueZoneTime: unique().on(table.zoneId, table.performedAt),
+  // Unique constraint: one maintenance record per zone (NUDLS only tracks latest)
+  uniqueZone: unique().on(table.zoneId),
 }));
 
 // Type exports for TypeScript to make it easier for inferring types during usage
