@@ -57,12 +57,12 @@ app.get('/api', (_req, res: Response<ApiRootResponse>) => {
     documentation: '/api-docs',
     endpoints: {
       zones: {
-        grid: 'GET /api/zones/grid', 
-        single: 'GET /api/zones/:id'
+        grid: 'GET /api/zones/grid', // Main endpoint needed for FE engineers
+        single: 'GET /api/zones/:id' // Extra bonus for FE to implement specific zone details when clicking on a zone
       },
       system: {
-        status: 'GET /api/system/status',
-        health: 'GET /api/system/health'
+        status: 'GET /api/system/status', // Detailed system status and counts
+        health: 'GET /api/system/health' // Overall health of the system
       }
     },
     grid: {

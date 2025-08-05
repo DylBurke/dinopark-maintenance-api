@@ -129,7 +129,7 @@ export class NudlsEventProcessors {
       console.log(`✅ Updated location: ${displayName} → Zone ${event.location}`);
     } catch (error) {
       console.error(`❌ Error processing dino_location_updated event:`, error);
-      // Don't throw - log and continue to avoid crashing the whole system
+      // Not throwing for now, until we get webhook integration - log and continue to avoid crashing the whole system
       console.log(`⏭️ Skipped problematic location update for dinosaur ${event.dinosaur_id}`);
     }
   }

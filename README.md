@@ -51,7 +51,7 @@ A zone is **SAFE** for maintenance workers if:
 Additional requirements:
 - **416 zones total** (26x16 grid: A0-Z15)
 - **30-day maintenance cycle** for each zone
-- **Real-time safety updates** via NUDLS™ integration
+- **Global Persistent Log safety updates** via NUDLS™ initial integration with future **Webhook integration**
 ---
 
 ## 🚀 Quick Start
@@ -124,9 +124,9 @@ The API will be available at `http://localhost:3000`
 The core challenge was building a safety-critical system that determines whether maintenance zones are safe for human workers based on real-time dinosaur locations and feeding schedules.
 
 **My Solution Architecture:**
-1. **Safety-First Design:** Built around the core business rule that zones with hungry carnivores are unsafe
+1. **Safety-First Design:** I built around the core business rule that zones with hungry carnivores are unsafe
 2. **RESTful API Structure:** Clean, predictable endpoints following REST conventions for easy frontend integration  
-3. **Database-Driven Logic:** Leveraged PostgreSQL for reliable data persistence and complex safety queries
+3. **Database-Driven Logic:** Leveraged PostgreSQL with Supabase for reliable data persistence and complex safety queries
 4. **External Integration:** Designed robust NUDLS integration for real-time dinosaur tracking data
 5. **Production-Ready Patterns:** Implemented proper error handling, validation, and testing from day one
 
@@ -134,20 +134,20 @@ The core challenge was building a safety-critical system that determines whether
 - **TypeScript + Node.js:** Type safety for mission-critical logic while maintaining rapid development
 - **Express.js:** Proven, lightweight framework with excellent ecosystem support
 - **Drizzle ORM:** Type-safe database queries with PostgreSQL's full feature set
-- **PostgreSQL:** ACID compliance and advanced querying for complex safety calculations
+- **PostgreSQL with Supabase:** ACID compliance and advanced querying for complex safety calculations
 - **Jest:** Comprehensive testing for business-critical safety logic
 
 **Key Design Principles:**
 - **Fail-Safe Operations:** System defaults to "unsafe" when data is uncertain
 - **Idempotent Processing:** Events can be reprocessed without data corruption
 - **Defensive Programming:** Extensive validation and graceful error handling
-- **Clear Separation of Concerns:** Business logic, data access, and API layers cleanly separated
+- **Clear Separation of Concerns:** Business logic, safety calculations, data access, and API layers cleanly separated
 
 This foundation enabled me to tackle specific technical challenges with confidence and reliability.
 
 ### The Out-of-Order Events Challenge
 
-**Initial Problem:** As you integrate with NUDLS at any point in time as a new system, The NUDLS feed could deliver events in any sequence - a dinosaur might be fed before being added, or removed before its location was updated. Traditional sequential processing would crash when trying to update non-existent records.
+**Initial Problem:** As you integrate with NUDLS at any point in time as a new system, The NUDLS feed could deliver events in any sequence. So, a dinosaur might 'be fed' before being added, or removed before its location was updated. Traditional sequential processing would crash when trying to update non-existent records.
 
 **My Iterative Approach:**
 
@@ -181,7 +181,7 @@ await db.insert(dinosaurs).values({
 - Need historical dinosaur and maintenance data for zone safety calculations
 - NUDLS provides HTTP GET endpoint that returns "all previously persisted events"
 - Must be fault-tolerant and handle out-of-order events
-- I wanted to build in a way that accounted for future webhook integration and receiving POST events
+- **I wanted to build in a way that accounted for future webhook integration and receiving POST events**
 
 **Implementation Approach:**
 1. **Manual seeding** - Run `npm run seed` once to fetch all NUDLS historical events for the purpose of this assessment using the endpoint provided
@@ -258,9 +258,13 @@ interface ZoneStatus {
 }
 ```
 
-**Live Example:**
+**Live Examples:**
 ```bash
+# Production
 curl https://dylan-burke-dinopark-maintenance-api.onrender.com/api/zones/grid
+
+# Local development
+curl http://localhost:3000/api/zones/grid
 ```
 
 ---
@@ -299,11 +303,17 @@ interface ZoneDetails {
 
 **Live Examples:**
 ```bash
-# Zone with dinosaurs
-curl https://dylan-burke-dinopark-maintenance-api.onrender.com/api/zones/N7
+# Production - Zone with dinosaurs
+curl https://dylan-burke-dinopark-maintenance-api.onrender.com/api/zones/A0
 
-# Empty zone
+# Production - Empty zone
 curl https://dylan-burke-dinopark-maintenance-api.onrender.com/api/zones/Z15
+
+# Local development - Zone with dinosaurs
+curl http://localhost:3000/api/zones/A0
+
+# Local development - Empty zone
+curl http://localhost:3000/api/zones/Z15
 ```
 
 ---
@@ -346,9 +356,13 @@ interface SystemStatus {
 }
 ```
 
-**Live Example:**
+**Live Examples:**
 ```bash
+# Production
 curl https://dylan-burke-dinopark-maintenance-api.onrender.com/api/system/status
+
+# Local development
+curl http://localhost:3000/api/system/status
 ```
 
 ---
@@ -741,7 +755,7 @@ firebase.firestore().collection('zones')
 - **Environment Isolation:** Secure environment variable management
 - **Fail-Safe Design:** Safety-first approach to all calculations
 
-### Production Security Recommendations
+### My Production Security Enhancements with more time
 - **API Authentication:** JWT-based authentication system
 - **Rate Limiting:** Request throttling per client
 - **Audit Logging:** Complete audit trail of all safety-critical operations
@@ -749,14 +763,6 @@ firebase.firestore().collection('zones')
 - **Database Security:** Encrypted at rest with proper access controls
 
 ---
-
-## 📈 Monitoring & Observability
-
-### Built-in Monitoring
-- **Health Checks:** `/api/system/health` endpoint
-- **System Statistics:** `/api/system/status` with comprehensive metrics
-- **NUDLS Service Status:** Check of service health
-- **Error Tracking:** Comprehensive error logging and tracking
 
 ### Production Monitoring Strategy
 - **Application Metrics:** Response times, error rates, throughput
@@ -773,3 +779,5 @@ firebase.firestore().collection('zones')
 - **IoT Integration:** Direct sensor integration for real-time zone monitoring
 
 ---
+
+### THANKS FOR READING 😊
